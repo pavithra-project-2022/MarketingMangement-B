@@ -43,27 +43,30 @@ export const login = async (req, res, next) => {
     const number = await User.findOne({ mobile: req.body.mobile });
     if (!user) return next(createError(404, "User not found!"));
     if (!number) return next(createError(404, "User not found!"));
-
-    const isPasswordCorrect = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
-    if (!isPasswordCorrect)
+    if(user || number){
+      const isPasswordCorrect = await bcrypt.compare(
+        req.body.password,
+        user.password
+      );
+      if (!isPasswordCorrect)
       return next(createError(400, "Wrong password or username!"));
-
-    const token = jwt.sign(
-      { id: user._id, isAdmin: user.isAdmin },
-      "8hEnPGeoBqGUT6zksxt4G95gW+uMdzwe7EVaRnp0xRI="
-    );
-
-    const { password,confirmPassword, ...otherDetails } = user._doc;
-    res
-      .cookie("access_token", token, {
-        httpOnly: true,
-      })
-      .status(200)
-      .json({message:"Logged in Successfully", details: { ...otherDetails } });
-  } catch (err) {
+      const token = jwt.sign(
+        { id: user._id, isAdmin: user.isAdmin },
+        "8hEnPGeoBqGUT6zksxt4G95gW+uMdzwe7EVaRnp0xRI="
+      );
+  
+      const { password,confirmPassword, ...otherDetails } = user._doc;
+      res
+        .cookie("access_token", token, {
+          httpOnly: true,
+        })
+        .status(200)
+        .json({message:"Logged in Successfully", details: { ...otherDetails } });
+  
+    }
+  
+   
+    } catch (err) {
     next(err);
   }
 };
