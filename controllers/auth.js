@@ -4,6 +4,9 @@ import { createError } from "../utils/error.js";
 import jwt from "jsonwebtoken";
 
 
+
+
+
 export const register = async (req, res, next) => {
   
   try {
@@ -39,34 +42,56 @@ export const register = async (req, res, next) => {
 };
 export const login = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email } ||{ mobile: req.body.mobile });
-    // const number = await User.findOne({ mobile: req.body.mobile });
-    if (!user) return next(createError(404, "User not found!"));
-    // if (!number) return next(createError(404, "User not found!"));
+  
+    let user;
     
+    // if (!user) return next(createError(404, "User not found!"));
+
+    if((user = await User.findOne({ email: req.body.email})) || (user = await User.findOne({ mobile: req.body.mobile })) || (user = await User.findOne({username:req.body.username}))){
       const isPasswordCorrect = await bcrypt.compare(
-        req.body.password,
-        user.password
-      );
-      if (!isPasswordCorrect)
-      return next(createError(400, "Wrong password or username!"));
-      const token = jwt.sign(
-        { id: user._id, isAdmin: user.isAdmin },
-        "8hEnPGeoBqGUT6zksxt4G95gW+uMdzwe7EVaRnp0xRI="
-      );
-  
-      const { password,confirmPassword, ...otherDetails } = user._doc;
-      res
-        .cookie("access_token", token, {
-          httpOnly: true,
-        })
-        .status(200)
-        .json({message:"Logged in Successfully", details: { ...otherDetails } });
-  
+          req.body.password,
+          user.password
+        );
+        if (!isPasswordCorrect)
+          return next(createError(400, "Wrong password or username!"));
     
-  
-   
-    } catch (err) {
+        const token = jwt.sign(
+          { id: user._id, isAdmin: user.isAdmin },
+          "8hEnPGeoBqGUT6zksxt4G95gW+uMdzwe7EVaRnp0xRI="
+        );
+        const { password,confirmPassword, ...otherDetails } = user._doc;
+      res
+      .cookie("access_token", token, {
+        httpOnly: true, 
+      })
+      .status(200)
+      .json({message:"Logged in Successfully", details: { ...otherDetails } });
+    
+    }
+    if(number){
+      const isPasswordCorrect = await bcrypt.compare(
+          req.body.password,
+          number.password
+        );
+        if (!isPasswordCorrect)
+          return next(createError(400, "Wrong password or username!"));
+    
+        const token = jwt.sign(
+          { id: number._id, isAdmin: number.isAdmin },
+          "8hEnPGeoBqGUT6zksxt4G95gW+uMdzwe7EVaRnp0xRI="
+        );
+        const { password,confirmPassword, ...otherDetails } = number._doc;
+      res
+      .cookie("access_token", token, {
+        httpOnly: true, 
+      })
+      .status(200)
+      .json({message:"Logged in Successfully", details: { ...otherDetails } });
+    
+    }
+
+
+  } catch (err) {
     next(err);
   }
 };

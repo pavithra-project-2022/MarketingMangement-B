@@ -16,6 +16,7 @@ export const createEmployee = async (req, res, next) => {
     email:userData.email,
     mobile:userData.mobile,
     pan:req.body.pan,
+    username:req.body.username,
     createDate:req.body.createDate
   });
 

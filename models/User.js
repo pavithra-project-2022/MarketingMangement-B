@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema(
     empId: { type: Number },
     userFname: { type: String, required: true },
     userLname: { type: String, required: true },
+    username:{type:String,require:false},
     email: {
       type: String,
       required: true,
