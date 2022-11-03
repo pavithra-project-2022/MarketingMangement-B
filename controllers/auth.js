@@ -39,11 +39,11 @@ export const register = async (req, res, next) => {
 };
 export const login = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
-    const number = await User.findOne({ mobile: req.body.mobile });
+    const user = await User.findOne({ email: req.body.email } ||{ mobile: req.body.mobile });
+    // const number = await User.findOne({ mobile: req.body.mobile });
     if (!user) return next(createError(404, "User not found!"));
-    if (!number) return next(createError(404, "User not found!"));
-    if(user || number){
+    // if (!number) return next(createError(404, "User not found!"));
+    
       const isPasswordCorrect = await bcrypt.compare(
         req.body.password,
         user.password
@@ -63,7 +63,7 @@ export const login = async (req, res, next) => {
         .status(200)
         .json({message:"Logged in Successfully", details: { ...otherDetails } });
   
-    }
+    
   
    
     } catch (err) {
