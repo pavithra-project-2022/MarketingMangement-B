@@ -15,6 +15,7 @@ const UserSchema = new mongoose.Schema(
     mobile: { type: String, required: true },
     password: { type: String, required: true },
     confirmPassword: { type: String, required: true },
+    isVerified:{type: Boolean,default:false},
     createDate:{type:String},
     modifyBy: { type: String, required: false },
     modifyDate: { type: String, required: false },

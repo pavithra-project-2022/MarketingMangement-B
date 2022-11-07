@@ -1,5 +1,6 @@
-const nodemailer = require("nodemailer");
-module.exports = async (email, subject, text,otp) => {
+import nodemailer from "nodemailer";
+
+export const sendEmail = async (email, subject, text) => {
   try {
     
     const transporter = nodemailer.createTransport({
@@ -17,11 +18,9 @@ module.exports = async (email, subject, text,otp) => {
       <div style="max-width: 700px; margin:auto; border: 10px solid #ddd; padding: 50px 20px; font-size: 110%;">
       <h2 style="text-align: center; text-transform: uppercase;color: teal;">Welcome to the Marketing Management App.</h2>
       <p>Congratulations! You're almost set to start using Marketing Management App.
-          Just click the button below to validate your email address or use Activation Code.
+          Just click the below link to validate your email address.
       </p>
       ${text}<br/>
-      Activation Code:${otp}
-  
   `  
     }
    
