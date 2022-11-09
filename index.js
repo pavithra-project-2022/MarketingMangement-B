@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoute from "./routes/auth.js";
+import passwordResetRoutes from "./routes/passwordReset.js";
 import usersRoute from "./routes/users.js";
 import employeeRoute from "./routes/employee.js";
 import dcmRoute from "./routes/dcm.js";
@@ -36,6 +37,7 @@ app.use(cookieParser())
 app.use(express.json());
 
 app.use("/api/auth", authRoute);
+app.use("/api/password-reset", passwordResetRoutes);
 app.use("/api/users", usersRoute);
 app.use("/api/employee", employeeRoute);
 app.use("/api/dcm", dcmRoute);
