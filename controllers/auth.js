@@ -66,8 +66,6 @@ export const verifyEmail = async (req, res) => {
 export const login = async (req, res, next) => {
   try {
 
-    
-
     let user;
 
     if (
@@ -82,8 +80,7 @@ export const login = async (req, res, next) => {
       );
       if (!isPasswordCorrect)
         return next(createError(400, "Wrong password or username!"));
-
-     
+        
       if (!user.isVerified) {
         let token = await Token.findOne({ userId: user._id });
         if (!token) {
