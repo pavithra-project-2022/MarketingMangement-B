@@ -22,6 +22,8 @@ export const createEmployee = async (req, res, next) => {
 
   try {
     const savedEmployee = await newEmployee.save();
+    await User.updateOne({empId:savedEmployee.empId},{mobile:savedEmployee.mobile})
+    await User.updateOne({empId:savedEmployee.empId},{email:savedEmployee.email})
     res.status(200).json(savedEmployee);
   } catch (err) {
     next(err);
