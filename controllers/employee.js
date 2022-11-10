@@ -12,9 +12,9 @@ export const createEmployee = async (req, res, next) => {
     empId:userId,
     empFname:userData.userFname,
     empMname:req.body.empMname,
-    empLname:userData.empLname || req.body.userLname,
-    email:userData.email || req.bod.email,
-    mobile:userData.mobile || req.body.mobile,
+    empLname:userData.empLname ? userData.empLname : req.body.userLname,
+    email:userData.email ? userData.email : req.bod.email,
+    mobile:userData.mobile ? userData.mobile : req.body.mobile,
     pan:req.body.pan,
     createDate:req.body.createDate
   });
