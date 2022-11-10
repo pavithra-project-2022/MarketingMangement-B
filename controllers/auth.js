@@ -19,24 +19,31 @@ export const register = async (req, res, next) => {
       password: hash,
       confirmPassword: hash,
     });
-    let user = await User.findOne({ email: req.body.email });
+    let user = await User.findOne({ emailOrPhone: req.body.emailemailOrPhone });
 
     if (user) {
       return res.status(409).send({ message: "Email already Exist!" });
     }
-    user = await newUser.save();
+      user = await newUser.save();
 
-    const token = await new Token({
-      userId: user._id,
-      token: crypto.randomBytes(32).toString("hex"),
-    }).save();
-    console.log(token);
-    const url = `https://marketing-mangement-system.netlify.app/users/${user.id}/verify/${token.token}`;
-    await sendEmail(user.email, "Verify Email", url);
-
-    await res
-      .status(200)
-      .send({ message: "An Email sent to your account please verify" });
+      if(user.emailOrPhone.length <=10 ){
+        await User.updateOne({ _id: user._id }, { mobile: user.emailOrPhone });
+        
+      }
+      else{
+        await User.updateOne({ _id: user._id }, { email: user.emailOrPhone });
+        const token = await new Token({
+          userId: user._id,
+          token: crypto.randomBytes(32).toString("hex"),
+        }).save();
+       
+        const url = `https://marketing-mangement-system.netlify.app/users/${user.id}/verify/${token.token}`;
+        await sendEmail(user.emailOrPhone, "Verify Email", url);
+    
+        await res
+          .status(200)
+          .send({ message: "An Email sent to your account please verify" });
+      }
   } catch (err) {
     next(err);
   }
@@ -54,6 +61,7 @@ export const verifyEmail = async (req, res) => {
     if (!token) return res.status(400).send({ message: "Invalid link" });
 
     await User.updateOne({ _id: user._id }, { isVerified: true });
+    await User.updateOne({ _id: user._id },{verifyMethod:"email"});
     await token.remove();
 
     res.status(200).send({ message: "Email verified successfully" });
@@ -61,7 +69,7 @@ export const verifyEmail = async (req, res) => {
     res.status(500).send({ message: "Internal Server Error" });
   }
 };
-// );
+
 
 export const login = async (req, res, next) => {
   try {
