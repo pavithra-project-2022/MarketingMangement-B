@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import Token from "../models/token.js";
+import verifyOtp from "../models/OtpVerify.js";
 import bcrypt from "bcryptjs";
 import { createError } from "../utils/error.js";
 import { sendEmail } from "../utils/sendEmail.js";
@@ -28,7 +29,20 @@ export const register = async (req, res, next) => {
 
       if(user.emailOrPhone.length <=10 ){
         await User.updateOne({ _id: user._id }, { mobile: user.emailOrPhone });
-        
+        const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
+      const saltRounds = 10;
+      const hashedOtp = await bcrypt.hash(otp, saltRounds);
+      const newOtpVerify = await new verifyOtp({
+        userId: user._id,
+        otp: hashedOtp,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 3600000,
+      });
+
+      await newOtpVerify.save();
+      await res
+      .status(200)
+      .send({ message: "OTP sent your mobile number",userId:newOtpVerify.userId,otp: otp});
       }
       else{
         await User.updateOne({ _id: user._id }, { email: user.emailOrPhone });
@@ -69,6 +83,53 @@ export const verifyEmail = async (req, res) => {
     res.status(500).send({ message: "Internal Server Error" });
   }
 };
+
+export const  OtpVerification = async (req, res) => {
+  try {
+    let { userId, otp } = req.body;
+    if (!userId && !otp) {
+      return res.status(400).send({ message: "Empty otp details not allowed" });
+      // throw Error("Empty otp details not allowed");
+    } else {
+      const verifyRecord = await verifyOtp.find({
+        userId,
+      });
+      if (verifyRecord.length <= 0) {
+        return res.status(400).send({ message: "Account does not exist." });
+        // throw new Error("Account does not exist.");
+      } else {
+        const { expiresAt } = verifyRecord[0];
+        const hashedOtp = verifyRecord[0].otp;
+
+        if (expiresAt < Date.now()) {
+          await verifyOtp.deleteMany({ userId });
+          return res
+            .status(400)
+            .send({ message: "Code has expired.Please request again" });
+          // throw new Error("Code has expired.Please request again");
+        } else {
+          const validOtp = await bcrypt.compare(otp, hashedOtp);
+
+          if (!validOtp) {
+            return res.status(400).send({ message: "Invalid code passed" });
+            // throw new Error("Invalid code passed");
+          } else {
+            await User.updateOne({ _id: userId }, { isVerified: true });
+            verifyOtp.deleteMany({ userId });
+            await User.updateOne({ _id: userId },{verifyMethod:"mobile"});
+            return res
+              .status(200)
+              .json({ message: "Mobile Number Verified Successfully" });
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+};
+
 
 
 export const login = async (req, res, next) => {
