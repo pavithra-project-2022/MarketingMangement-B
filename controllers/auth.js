@@ -136,13 +136,9 @@ export const login = async (req, res, next) => {
   try {
 
     let user;
-
-    if (
-      (user = await User.findOne({ email: req.body.email })) ||
-      (user = await User.findOne({ mobile: req.body.mobile })) ||
-      (user = await User.findOne({ username: req.body.username }))
-    ) {
-     
+    let userLog = req.body.user
+    if(userLog.includes("@")){
+      user = await User.findOne({ email: req.body.user })
       const isPasswordCorrect = await bcrypt.compare(
         req.body.password,
         user.password
@@ -181,6 +177,74 @@ export const login = async (req, res, next) => {
           details: { ...otherDetails },
         });
     }
+   else if(userLog.length <= 10){
+    user = await User.findOne({ mobile: req.body.user })
+      const isPasswordCorrect = await bcrypt.compare(
+        req.body.password,
+        user.password
+      );
+      if (!isPasswordCorrect)
+        return next(createError(400, "Wrong password or username!"));
+        
+      // if (!user.isVerified) {
+      //   let token = await Token.findOne({ userId: user._id });
+      //   if (!token) {
+      //     token = await new Token({
+      //       userId: user._id,
+      //       token: crypto.randomBytes(32).toString("hex"),
+      //     }).save();
+      //     const url = `https://marketing-mangement-system.netlify.app/users/${user.id}/verify/${token.token}`;
+      //     await sendEmail(user.email, "Verify Email", url);
+      //   }
+
+      //   return res
+      //     .status(400)
+      //     .send({ message: "An Email sent to your account please verify" });
+      // }
+
+      const token = jwt.sign(
+        { id: user._id, isAdmin: user.isAdmin },
+        "8hEnPGeoBqGUT6zksxt4G95gW+uMdzwe7EVaRnp0xRI="
+      );
+      const { password, confirmPassword, ...otherDetails } = user._doc;
+      res
+        .cookie("access_token", token, {
+          httpOnly: true,
+        })
+        .status(200)
+        .json({
+          message: "Logged in Successfully",
+          details: { ...otherDetails },
+        });
+   }
+
+    else{
+      user = await User.findOne({ username: req.body.user })
+      const isPasswordCorrect = await bcrypt.compare(
+        req.body.password,
+        user.password
+      );
+      if (!isPasswordCorrect)
+        return next(createError(400, "Wrong password or username!"));
+
+      const token = jwt.sign(
+        { id: user._id, isAdmin: user.isAdmin },
+        "8hEnPGeoBqGUT6zksxt4G95gW+uMdzwe7EVaRnp0xRI="
+      );
+      const { password, confirmPassword, ...otherDetails } = user._doc;
+      res
+        .cookie("access_token", token, {
+          httpOnly: true,
+        })
+        .status(200)
+        .json({
+          message: "Logged in Successfully",
+          details: { ...otherDetails },
+        });
+    }
+      
+     
+     
   } catch (err) {
     next(err);
   }
