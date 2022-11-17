@@ -177,7 +177,7 @@ export const login = async (req, res, next) => {
           details: { ...otherDetails },
         });
     }
-   else if(userLog.length <= 10){
+   else if(userLog.length === 10){
     user = await User.findOne({ mobile: req.body.user })
       const isPasswordCorrect = await bcrypt.compare(
         req.body.password,
